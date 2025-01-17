@@ -2,29 +2,29 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.IO;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Collections.Specialized;
 
 namespace Cosy
 {
 	public partial class Security : Form
 	{
-        [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
-        private static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
-        private bool mouseIsDown;
+		[DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
+		private static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
+		private bool mouseIsDown;
 		private Point firstPoint;
 		public string[] files;
 		public Security(string[] fileNames, bool mode)
 		{
 			files = fileNames;
 			InitializeComponent();
-            Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 20, 20));
-            Exit.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, Exit.Width, Exit.Height, 5, 5));
-            password.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, password.Width, password.Height, 5, 5));
-            Login.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, Login.Width, Login.Height, 5, 5));
-            KeyPreview = true;
-            Login.Text = mode ? "ENCRYPT" : "DECRYPT";
-        }
+			Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 20, 20));
+			Exit.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, Exit.Width, Exit.Height, 5, 5));
+			password.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, password.Width, password.Height, 5, 5));
+			Login.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, Login.Width, Login.Height, 5, 5));
+			KeyPreview = true;
+			Login.Text = mode ? "ENCRYPT" : "DECRYPT";
+		}
 		void Security_KeyDown(object sender, KeyEventArgs e)
 		{
 			if (e.KeyCode == Keys.Enter)
@@ -36,55 +36,33 @@ namespace Cosy
 		{
 			if (string.IsNullOrEmpty(password.Text))
 			{
-				MessageBox.Show("Password Missing!");
+				MessageBox.Show("Password cannot be empty!");
 			}
-			else if (File.Exists("C:\\TTMC\\Cosy\\cosy.pswd"))
+			try
 			{
-				byte[] secret = Engine.Decrypt(File.ReadAllBytes("C:\\TTMC\\Cosy\\cosy.pswd"), password.Text);
-				if (Convert.ToBase64String(secret) == "Q09TWQ==")
+				if (Login.Text == "ENCRYPT")
 				{
-					if (Login.Text == "ENCRYPT")
+					foreach (string file in files)
 					{
-						List<string> list = new();
-						if (File.Exists("C:\\TTMC\\Cosy\\list.pswd"))
-						{
-							list.AddRange(File.ReadLines("C:\\TTMC\\Cosy\\list.pswd"));
-						}
-						foreach (string file in files)
-						{
-							File.WriteAllBytes(file + ".cosy", Engine.Encrypt(File.ReadAllBytes(file), password.Text));
-							File.Delete(file);
-							if (!list.Contains(file))
-							{
-								list.Add(file);
-							}
-						}
-						File.WriteAllLines("C:\\TTMC\\Cosy\\list.pswd", list);
+						byte[] bytes = File.ReadAllBytes(file);
+						Encryptor.Compile($"{file}.cosy", bytes, password.Text);
+						File.Delete(file);
 					}
-					else if (Login.Text == "DECRYPT")
-					{
-						List<string> list = new();
-						if (File.Exists("C:\\TTMC\\Cosy\\list.pswd"))
-						{
-                            list.AddRange(File.ReadLines("C:\\TTMC\\Cosy\\list.pswd"));
-                        }
-						foreach (string file in files)
-						{
-							File.WriteAllBytes(file[0..^5], Engine.Decrypt(File.ReadAllBytes(file), password.Text));
-							File.Delete(file);
-							if (list.Contains(file[0..^5]))
-							{
-								list.Remove(file[0..^5]);
-							}
-						}
-						File.WriteAllLines("C:\\TTMC\\Cosy\\list.pswd", list);
-					}
-					Close();
 				}
-				else
+				else if (Login.Text == "DECRYPT")
 				{
-					MessageBox.Show("Wrong Password!");
+					foreach (string file in files)
+					{
+						byte[] bytes = Encryptor.Decompile(file, password.Text);
+						File.WriteAllBytes(file[0..^5], bytes);
+						File.Delete(file);
+					}
 				}
+				Close();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
 		private void Save_MouseEnter(object sender, EventArgs e)

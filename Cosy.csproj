@@ -2,9 +2,43 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <ApplicationIcon>Lock.ico</ApplicationIcon>
+    <ApplicationIcon>encrypted.ico</ApplicationIcon>
+    <StartupObject>Cosy.Program</StartupObject>
+    <NoWin32Manifest>true</NoWin32Manifest>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>encrypted.png</PackageIcon>
+    <PackageProjectUrl>https://nzx.hu/Cosy</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/TheBlueLines/Cosy</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <Company>TTMC</Company>
+    <Authors>TheBlueLines</Authors>
+    <Title>Cosy</Title>
+    <Description>Encrypt your files</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="encrypted.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\Képek\Icons\encrypted.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
